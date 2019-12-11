@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 
-def gower_distances(X, Y, weights=None):
+def gower_distances(X, weights=None):
     """Calculate Gower distance (Gower 1971) between observations
 
     From daisy documentation:
@@ -27,19 +27,19 @@ def gower_distances(X, Y, weights=None):
     Parameters:
     -----------
         X: array-like with shape (n_samples_X, n_features)
-        Y: array-like with shape (n_samples_Y, n_features)
         weights: list of length n_features with feature weights
 
     Returns:
     --------
-        distances: array with shape (n_samples_X, n_samples_Y)
+        distances: array with shape (n_samples_X, n_samples_X)
     """
     n, p = X.shape
-    if Y.shape != (n, p):
-        raise ValueError("X and Y dimensions do not match!")
 
     if weights is None:
         weights = [1] * p
+
+    feat_is_numeric_dict = _check_numeric_features(X)
+    feat_ranges = _check_feature_ranges(X)
 
     return
 
@@ -52,12 +52,21 @@ def _check_numeric_features(X):
     return feat_is_numeric
 
 
-def _feature_similarity(row1, row2, feat_is_numeric_list=None, weights=None):
-    feat_distances = np.zeros(row1.shape) - 1
-    for i, this_feat_is_numeric in enumerate(feat_is_numeric_list):
-        if this_feat_is_numeric:
+def _check_feature_ranges(X, feat_is_numeric_dict):
+    feat_ranges = {
+        feat: X[feat].max() - X[feat].min() for feat in
+        X.columns if feat_is_numeric_dict[feat]
+    }
+    return feat_ranges
+
+
+def _feature_similarity(row1, row2, feat_is_numeric_dict=None, weights=None):
+    feat_distances = list()
+    for feat, is_numeric in feat_is_numeric_dict.items():
+        if is_numeric:
             pass
         else:
-            feat_distances[i] = row1.iloc[0, i] == row2.iloc[0, i]
+            feat_distances.append(row1[feat] == row2[feat])
+            pass
         pass
     return
