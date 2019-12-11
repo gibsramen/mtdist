@@ -1,5 +1,3 @@
-import numbers
-
 import numpy as np
 import pandas as pd
 
@@ -9,13 +7,13 @@ def gower_distances(X, weights=None):
 
     From daisy documentation:
 
-     ---------------------------------------------------------------
-    | d_ij = \frac{\sum_{k=1}^p w_k \delta_{ij}^{(k)} d_{ij}^{(k)}} |
-    |             {\sum_{k=1}^p w_k \delta_{ij}^{(k)}}              |
-     ---------------------------------------------------------------
+     ------------------------------------------------------------------
+    | d_ij = \\frac{\\sum_{k=1}^p w_k \\delta_{ij}^{(k)} d_{ij}^{(k)}} |
+    |             {\\sum_{k=1}^p w_k \\delta_{ij}^{(k)}}               |
+     ------------------------------------------------------------------
 
     w_k: weight of k-th variable of p
-    \delta_{ij}^{(i)}: 0 when k-th variable is missing in at least one
+    \\delta_{ij}^{(i)}: 0 when k-th variable is missing in at least one
         row, 1 otherwise
     d_{ij}^{(k)}: 1 when k-th variable matches between the two rows,
         1 otherwise
@@ -39,9 +37,17 @@ def gower_distances(X, weights=None):
         weights = [1] * p
 
     feat_is_numeric_dict = _check_numeric_features(X)
-    feat_ranges = _check_feature_ranges(X)
+    feat_ranges = _check_feature_ranges(X, feat_is_numeric_dict)
 
-    return
+    x = _feature_similarity(
+        X.iloc[0, :],
+        X.iloc[1, :],
+        feat_is_numeric_dict=feat_is_numeric_dict,
+        feature_ranges=feat_ranges,
+        weights=weights,
+    )
+
+    return x
 
 
 def _check_numeric_features(X):
@@ -60,13 +66,30 @@ def _check_feature_ranges(X, feat_is_numeric_dict):
     return feat_ranges
 
 
-def _feature_similarity(row1, row2, feat_is_numeric_dict=None, weights=None):
-    feat_distances = list()
-    for feat, is_numeric in feat_is_numeric_dict.items():
-        if is_numeric:
-            pass
+def _feature_similarity(
+    row1,
+    row2,
+    feat_is_numeric_dict=None,
+    feature_ranges=None,
+    weights=None,
+):
+    num = 0
+    denom = 0
+    for i, item in enumerate(feat_is_numeric_dict.items()):
+        feat = item[0]
+        is_numeric = item[1]
+
+        if pd.isna(row1[feat]) or pd.isna(row2[feat]):
+            delta = 0
         else:
-            feat_distances.append(row1[feat] == row2[feat])
-            pass
-        pass
-    return
+            delta = 1
+
+        if is_numeric:
+            dist = np.abs(row1[feat] - row2[feat]) / feature_ranges[feat]
+        else:
+            dist = int(row1[feat] != row2[feat])
+
+        dist = dist * weights[i] * delta
+        num += dist
+        denom = denom + weights[i] * delta
+    return num/denom
