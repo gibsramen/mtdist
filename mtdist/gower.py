@@ -81,15 +81,19 @@ def _feature_similarity(
         feat = item[0]
         is_numeric = item[1]
 
+        val1 = row1[feat]
+        val2 = row2[feat]
+
         # delta is 0 if one of the two feature values is missing/NaN
-        delta = not int(pd.isna(row1[feat]) or pd.isna(row2[feat]))
+        delta = not int(pd.isna(val1) or pd.isna(val2))
 
         if is_numeric:
-            dist = np.abs(row1[feat] - row2[feat]) / feature_ranges[feat]
+            dist = np.abs(val1 - val2) / feature_ranges[feat]
         else:
-            dist = int(row1[feat] != row2[feat])
+            dist = int(val1 != val2)
 
         dist = dist * weights[i] * delta
+
         num += dist
         denom = denom + weights[i] * delta
     return num/denom
