@@ -41,18 +41,24 @@ class TestGower():
     def test_gower_1(self):
         """Test that Gower distance can handle categorical data
 
-         ----------------------
-        | 1  2  3  4  5  "hi"  |
-        | 0  2  4  6  8  "bye" |
-        | 3  6  9  12 15 "hi"  |
-        | 2  2  2  2  2  "bye" |
-         ----------------------
+         -------------------------
+        |    a  b  c   d  e     f |
+        | r1 1  2  3  4  5  "hi"  |
+        | r2 0  2  4  6  8  "bye" |
+        | r3 3  6  9  12 15 "hi"  |
+        | r4 2  2  2  2  2  "bye" |
+         -------------------------
 
-        Dist between row1 and row2:
-            (1/3 + 0/4 + 1/7 + 2/10 + 3/13 + 1)/(6)
-            = 0.31782661782661786
+        Distances from daisy:
+
+         --------------------------------------------
+        |           r1        r2        r3        r4 |
+        | r1 0.0000000 0.3178266 0.6821734 0.3178266 |
+        | r2 0.3178266 0.0000000 0.8087912 0.3023199 |
+        | r3 0.6821734 0.8087912 0.0000000 0.8888889 |
+        | r4 0.3178266 0.3023199 0.8888889 0.0000000 |
+         --------------------------------------------
         """
-        target_dist = 0.31782661782661786
         mat = np.array([
             [1, 2, 3, 4, 5],
             [0, 2, 4, 6, 8],
@@ -62,6 +68,12 @@ class TestGower():
         df = pd.DataFrame(mat)
         df.columns = list("abcde")
         df["f"] = ["hi", "bye"] * 2
+
         gower_dist = distance.gower_distances(df)
-        diff = target_dist - gower_dist
-        assert diff == pytest.approx(0)
+        target_dist = np.array([
+            [0.0000000, 0.3178266, 0.6821734, 0.3178266],
+            [0.3178266, 0.0000000, 0.8087912, 0.3023199],
+            [0.6821734, 0.8087912, 0.0000000, 0.8888889],
+            [0.3178266, 0.3023199, 0.8888889, 0.0000000],
+        ])
+        np.testing.assert_allclose(gower_dist, target_dist)

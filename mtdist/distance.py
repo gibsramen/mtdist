@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from sklearn.metrics import pairwise_distances
 
 
 def gower_distances(X, weights=None):
@@ -39,18 +40,23 @@ def gower_distances(X, weights=None):
     feat_is_numeric_dict = _check_numeric_features(X)
     feat_ranges = _check_feature_ranges(X, feat_is_numeric_dict)
 
-    x = _feature_similarity(
-        X.iloc[0, :],
-        X.iloc[1, :],
-        feat_is_numeric_dict=feat_is_numeric_dict,
-        feature_ranges=feat_ranges,
-        weights=weights,
-    )
-
-    return x
+    D = np.zeros((n, n))
+    for i in range(n - 1):
+        for j in range(i + 1, n):
+            d = _feature_similarity(
+                X.iloc[i, :],
+                X.iloc[j, :],
+                feat_is_numeric_dict=feat_is_numeric_dict,
+                feature_ranges=feat_ranges,
+                weights=weights,
+            )
+            D[i, j] = d
+            D[j, i] = d
+    return D
 
 
 def _check_numeric_features(X):
+    """Check which features of data are numeric"""
     numeric_types = 'biuf'  # boolean, signed/unsigned int, float
     feat_is_numeric = {
         name: (dt.kind in numeric_types) for name, dt in X.dtypes.iteritems()
@@ -59,6 +65,7 @@ def _check_numeric_features(X):
 
 
 def _check_feature_ranges(X, feat_is_numeric_dict):
+    """Gower distance requires range of numeric features"""
     feat_ranges = {
         feat: X[feat].max() - X[feat].min() for feat in
         X.columns if feat_is_numeric_dict[feat]
@@ -73,16 +80,17 @@ def _feature_similarity(
     feature_ranges=None,
     weights=None,
 ):
+    """Compute Gower distance between two observations"""
     num = 0
     denom = 0
+    # can probably be cleaned up with nested dictionaries
+    # maybe even a namedtuple
     for i, item in enumerate(feat_is_numeric_dict.items()):
         feat = item[0]
         is_numeric = item[1]
 
-        if pd.isna(row1[feat]) or pd.isna(row2[feat]):
-            delta = 0
-        else:
-            delta = 1
+        # delta is 0 if one of the two feature values is missing/NaN
+        delta = not int(pd.isna(row1[feat]) or pd.isna(row2[feat]))
 
         if is_numeric:
             dist = np.abs(row1[feat] - row2[feat]) / feature_ranges[feat]
