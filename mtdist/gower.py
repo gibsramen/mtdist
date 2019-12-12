@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
-from sklearn.metrics import pairwise_distances
+
+from ._datatypes import check_numeric_features
 
 
 def gower_distances(X, weights=None):
@@ -37,7 +38,7 @@ def gower_distances(X, weights=None):
     if weights is None:
         weights = [1] * p
 
-    feat_is_numeric_dict = _check_numeric_features(X)
+    feat_is_numeric_dict = check_numeric_features(X)
     feat_ranges = _check_feature_ranges(X, feat_is_numeric_dict)
 
     D = np.zeros((n, n))
@@ -53,15 +54,6 @@ def gower_distances(X, weights=None):
             D[i, j] = d
             D[j, i] = d
     return D
-
-
-def _check_numeric_features(X):
-    """Check which features of data are numeric"""
-    numeric_types = 'biuf'  # boolean, signed/unsigned int, float
-    feat_is_numeric = {
-        name: (dt.kind in numeric_types) for name, dt in X.dtypes.iteritems()
-    }
-    return feat_is_numeric
 
 
 def _check_feature_ranges(X, feat_is_numeric_dict):
