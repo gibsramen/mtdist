@@ -4,7 +4,7 @@ import pandas as pd
 from ._datatypes import check_numeric_features
 
 
-def gower_distances(X, weights=None):
+def gower_distances(X: pd.DataFrame, weights: dict = None) -> np.ndarray:
     """Calculate Gower distance (Gower 1971) between observations
 
     From daisy documentation:
@@ -15,7 +15,7 @@ def gower_distances(X, weights=None):
      ------------------------------------------------------------------
 
     w_k: weight of k-th variable of p
-    \\delta_{ij}^{(i)}: 0 when k-th variable is missing in at least one
+    \\delta_{ij}^{(k)}: 0 when k-th variable is missing in at least one
         row, 1 otherwise
     d_{ij}^{(k)}: 1 when k-th variable matches between the two rows,
         1 otherwise
