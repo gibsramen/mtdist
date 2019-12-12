@@ -87,14 +87,16 @@ def _feature_similarity(
 
         # delta is 0 if one of the two feature values is missing/NaN
         delta = not int(pd.isna(val1) or pd.isna(val2))
+        if delta == 0:
+            continue
 
         if is_numeric:
             dist = np.abs(val1 - val2) / feature_ranges[feat]
         else:
             dist = int(val1 != val2)
 
-        dist = dist * weight * delta
+        dist = dist * weight
 
         num += dist
-        denom = denom + weight * delta
+        denom = denom + weight
     return num/denom

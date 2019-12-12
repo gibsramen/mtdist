@@ -7,7 +7,7 @@ import pytest
 from .. import gower
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def dataset1():
     """Testing dataset 1
 
@@ -82,5 +82,31 @@ def test_weights(dataset1):
         [0.2922161, 0.0000000, 0.7489011, 0.3344322],
         [0.7077839, 0.7489011, 0.0000000, 0.9166667],
         [0.2922161, 0.3344322, 0.9166667, 0.0000000],
+    ])
+    np.testing.assert_allclose(gower_dist, target_dist, rtol=1e-05)
+
+
+def test_missing_values(dataset1):
+    """Test that missing values are handled properly
+
+    Distances from daisy:
+
+         --------------------------------------------
+        |           r1        r2        r3        r4 |
+        | r1 0.0000000 0.2413919 0.6586081 0.3678266 |
+        | r2 0.2413919 0.0000000 0.8131868 0.4827839 |
+        | r3 0.6586081 0.8131868 0.0000000 0.8666667 |
+        | r4 0.3678266 0.4827839 0.8666667 0.0000000 |
+         --------------------------------------------
+    """
+    dataset1.iloc[2, 3] = np.nan
+    dataset1.iloc[1, 5] = np.nan
+
+    gower_dist = gower.gower_distances(dataset1)
+    target_dist = np.array([
+        [0.0000000, 0.2413919, 0.6586081, 0.3678266],
+        [0.2413919, 0.0000000, 0.8131868, 0.4827839],
+        [0.6586081, 0.8131868, 0.0000000, 0.8666667],
+        [0.3678266, 0.4827839, 0.8666667, 0.0000000],
     ])
     np.testing.assert_allclose(gower_dist, target_dist, rtol=1e-05)
