@@ -36,7 +36,7 @@ def gower_distances(X, weights=None):
     n, p = X.shape
 
     if weights is None:
-        weights = [1] * p
+        weights = {feat: 1 for feat in X.columns}
 
     feat_is_numeric_dict = check_numeric_features(X)
     feat_ranges = _check_feature_ranges(X, feat_is_numeric_dict)
@@ -83,6 +83,7 @@ def _feature_similarity(
 
         val1 = row1[feat]
         val2 = row2[feat]
+        weight = weights[feat]
 
         # delta is 0 if one of the two feature values is missing/NaN
         delta = not int(pd.isna(val1) or pd.isna(val2))
@@ -92,8 +93,8 @@ def _feature_similarity(
         else:
             dist = int(val1 != val2)
 
-        dist = dist * weights[i] * delta
+        dist = dist * weight * delta
 
         num += dist
-        denom = denom + weights[i] * delta
+        denom = denom + weight * delta
     return num/denom
