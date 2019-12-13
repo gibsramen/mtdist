@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from ._datatypes import check_numeric_features
+from ._datatypes import get_feature_types
 
 
 def gower_distances(
@@ -43,8 +43,11 @@ def gower_distances(
     if weights is None:
         weights = {feat: 1 for feat in X.columns}
 
-    feat_is_numeric_dict = check_numeric_features(X)
-    feat_ranges = _check_feature_ranges(X, feat_is_numeric_dict)
+    feature_types_dict = get_feature_types(X)
+    if feature_types is not None:
+        feature_types_dict = feature_types_dict.update(feature_types)
+
+    feat_ranges = _check_feature_ranges(X, feature_types_dict)
 
     D = np.zeros((n, n))
     for i in range(n - 1):
@@ -52,7 +55,7 @@ def gower_distances(
             d = _feature_similarity(
                 X.iloc[i, :],
                 X.iloc[j, :],
-                feat_is_numeric_dict=feat_is_numeric_dict,
+                feature_types_dict=feature_types_dict,
                 feature_ranges=feat_ranges,
                 weights=weights,
             )
@@ -61,11 +64,11 @@ def gower_distances(
     return D
 
 
-def _check_feature_ranges(X, feat_is_numeric_dict):
+def _check_feature_ranges(X, feature_types_dict):
     """Gower distance requires range of numeric features"""
     feat_ranges = {
         feat: X[feat].max() - X[feat].min() for feat in
-        X.columns if feat_is_numeric_dict[feat]
+        X.columns if feature_types_dict[feat] == "numeric"
     }
     return feat_ranges
 
@@ -73,7 +76,7 @@ def _check_feature_ranges(X, feat_is_numeric_dict):
 def _feature_similarity(
     row1,
     row2,
-    feat_is_numeric_dict=None,
+    feature_types_dict=None,
     feature_ranges=None,
     weights=None,
 ):
@@ -82,9 +85,9 @@ def _feature_similarity(
     denom = 0
     # can probably be cleaned up with nested dictionaries
     # maybe even a namedtuple
-    for i, item in enumerate(feat_is_numeric_dict.items()):
+    for i, item in enumerate(feature_types_dict.items()):
         feat = item[0]
-        is_numeric = item[1]
+        is_numeric = item[1] == "numeric"
 
         val1 = row1[feat]
         val2 = row2[feat]
