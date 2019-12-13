@@ -110,3 +110,30 @@ def test_missing_values(dataset1):
         [0.3678266, 0.4827839, 0.8666667, 0.0000000],
     ])
     np.testing.assert_allclose(gower_dist, target_dist, rtol=1e-05)
+
+
+def test_symm_boolean_values(dataset1):
+    """Test that missing values are handled properly
+
+    r4 = [True, False, False, False]
+
+    Distances from daisy:
+
+         --------------------------------------------
+        |           r1        r2        r3        r4 |
+        | r1 0.0000000 0.3178266 0.8488400 0.3178266 |
+        | r2 0.3178266 0.0000000 0.6421245 0.3023199 |
+        | r3 0.8488400 0.6421245 0.0000000 0.7222222 |
+        | r4 0.3178266 0.3023199 0.7222222 0.0000000 |
+         --------------------------------------------
+    """
+    dataset1["f"] = [True, False, False, False]
+
+    gower_dist = gower.gower_distances(dataset1)
+    target_dist = np.array([
+        [0.0000000, 0.3178266, 0.8488400, 0.3178266],
+        [0.3178266, 0.0000000, 0.6421245, 0.3023199],
+        [0.8488400, 0.6421245, 0.0000000, 0.7222222],
+        [0.3178266, 0.3023199, 0.7222222, 0.0000000],
+    ])
+    np.testing.assert_allclose(gower_dist, target_dist, rtol=1e-05)

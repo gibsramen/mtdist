@@ -4,7 +4,11 @@ import pandas as pd
 from ._datatypes import check_numeric_features
 
 
-def gower_distances(X: pd.DataFrame, weights: dict = None) -> np.ndarray:
+def gower_distances(
+    X: pd.DataFrame,
+    weights: dict = None,
+    feature_types: dict = None,
+) -> np.ndarray:
     """Calculate Gower distance (Gower 1971) between observations
 
     From daisy documentation:
@@ -27,7 +31,8 @@ def gower_distances(X: pd.DataFrame, weights: dict = None) -> np.ndarray:
     Parameters:
     -----------
         X: array-like with shape (n_samples_X, n_features)
-        weights: list of length n_features with feature weights
+        weights: dict of format {feature: weight}
+        feature_types: dict of format {feature: weight}
 
     Returns:
     --------
@@ -83,7 +88,7 @@ def _feature_similarity(
 
         val1 = row1[feat]
         val2 = row2[feat]
-        weight = weights[feat]
+        weight = weights.get(feat, 1)
 
         # delta is 0 if one of the two feature values is missing/NaN
         delta = not int(pd.isna(val1) or pd.isna(val2))
