@@ -45,7 +45,7 @@ def gower_distances(
 
     feature_types_dict = get_feature_types(X)
     if feature_types is not None:
-        feature_types_dict = feature_types_dict.update(feature_types)
+        feature_types_dict.update(feature_types)
 
     feat_ranges = _check_feature_ranges(X, feature_types_dict)
 
@@ -83,22 +83,23 @@ def _feature_similarity(
     """Compute Gower distance between two observations"""
     num = 0
     denom = 0
-    # can probably be cleaned up with nested dictionaries
-    # maybe even a namedtuple
-    for i, item in enumerate(feature_types_dict.items()):
-        feat = item[0]
-        is_numeric = item[1] == "numeric"
+    for feat, feat_type in feature_types_dict.items():
 
         val1 = row1[feat]
         val2 = row2[feat]
         weight = weights.get(feat, 1)
 
         # delta is 0 if one of the two feature values is missing/NaN
+        # if feature is asymmetric binary, delta is 0 if both observations
+        #  are False, 1 otherwise
         delta = not int(pd.isna(val1) or pd.isna(val2))
+        if feat_type == "asymmbin":
+            delta = val1 or val2
+
         if delta == 0:
             continue
 
-        if is_numeric:
+        if feat_type == "numeric":
             dist = np.abs(val1 - val2) / feature_ranges[feat]
         else:
             dist = int(val1 != val2)
